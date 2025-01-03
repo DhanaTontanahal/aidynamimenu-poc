@@ -4,33 +4,65 @@ const AIDashboard = () => {
   const [buttons, setButtons] = useState([]);
   const userId = "user_123"; // Replace with dynamic user ID if needed
 
-  // Fetch ranked menus from the Flask API on component mount
-  useEffect(() => {
-    const fetchRankedMenus = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:5000/get-ranked-menus?user_id=${userId}`
-        );
-        const data = await response.json();
-        // Extract menu names from the ranked list
-        const rankedMenus = data.ranked_menus.map((menu) => menu.menu);
-        setButtons(rankedMenus);
-      } catch (error) {
-        console.error("Error fetching ranked menus:", error);
-      }
+  const fetchRankedMenus = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/get-ranked-menus?user_id=${userId}`
+      );
+      const data = await response.json();
+      console.log(data);
+      const rankedMenus =
+        data.ranked_menus.length > 0
+          ? data.ranked_menus.map((menu) => menu.menu)
+          : [
+              "Menu 1",
+              "Menu 2",
+              "Menu 3",
+              "Menu 4",
+              "Menu 5",
+              "Menu 6",
+              "Menu 7",
+            ];
+      setButtons(rankedMenus);
+    } catch (error) {
+      console.error("Error fetching ranked menus:", error);
+    }
+  };
+  useEffect(() => {}, []);
+
+  const handleClick = async (buttonName) => {
+    // alert(`You clicked ${buttonName}`);
+
+    const timestamp = new Date().toISOString(); // Current timestamp
+    const payload = {
+      user_id: "user_123", // Replace with dynamic user ID if needed
+      menu_name: buttonName,
+      timestamp: timestamp,
     };
 
-    fetchRankedMenus();
-  }, []);
+    try {
+      await fetch("http://127.0.0.1:5000/log-menu-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      console.log("Click logged successfully");
+    } catch (error) {
+      console.error("Error logging click:", error);
+    }
+  };
 
-  const handleClick = (buttonName) => {
-    alert(`You clicked ${buttonName}`);
-    // Add additional logic if needed
+  const handleGetAIMenus = () => {
+    fetchRankedMenus();
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Menu Buttons</h1>
+      <button onClick={handleGetAIMenus}>Get AI suggested menus</button>
+      <br />
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {buttons.length > 0 ? (
           buttons.map((buttonName, index) => (
@@ -50,7 +82,7 @@ const AIDashboard = () => {
             </button>
           ))
         ) : (
-          <p>Loading menu buttons...</p>
+          <p>Loading ...</p>
         )}
       </div>
     </div>
